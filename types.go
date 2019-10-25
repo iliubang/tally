@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"sort"
 	"time"
+
+	"github.com/rcrowley/go-metrics"
 )
 
 // Scope is a namespace wrapper around a stats reporter, ensuring that
@@ -31,6 +33,9 @@ import (
 type Scope interface {
 	// Counter returns the Counter object corresponding to the name.
 	Counter(name string) Counter
+
+	// Meter returns the Meter object corresponding to the name.
+	Meter(name string) Meter
 
 	// Gauge returns the Gauge object corresponding to the name.
 	Gauge(name string) Gauge
@@ -63,6 +68,10 @@ type Scope interface {
 type Counter interface {
 	// Inc increments the counter by a delta.
 	Inc(delta int64)
+}
+
+type Meter interface {
+	metrics.Meter
 }
 
 // Gauge is the interface for emitting gauge metrics.

@@ -27,7 +27,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/uber-go/tally/thirdparty/github.com/apache/thrift/lib/go/thrift"
+	"github.com/iliubang/tally/thirdparty/github.com/apache/thrift/lib/go/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)

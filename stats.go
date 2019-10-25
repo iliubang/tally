@@ -26,6 +26,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/rcrowley/go-metrics"
 )
 
 var (
@@ -54,6 +56,53 @@ func (c *capabilities) Reporting() bool {
 
 func (c *capabilities) Tagging() bool {
 	return c.tagging
+}
+
+type meter struct {
+	metrics.Meter
+	cachedMeter CachedMeter
+}
+
+func newMeter(cachedMeter CachedMeter) *meter {
+	return &meter{Meter: metrics.NewMeter(), cachedMeter: cachedMeter}
+}
+
+func (m *meter) cachedReport() {
+	m.cachedMeter.ReportMeter(RATE1, m.Rate1())
+	m.cachedMeter.ReportMeter(RATE5, m.Rate5())
+	m.cachedMeter.ReportMeter(RATE15, m.Rate15())
+	m.cachedMeter.ReportMeter(RATE_MEAN, m.RateMean())
+	m.cachedMeter.ReportMeter(COUNT, float64(m.Count()))
+}
+
+func (m *meter) report(name string, tags map[string]string, r StatsReporter) {
+	_, ok := tags["rate"]
+	size := len(tags)
+	if !ok {
+		size++
+	}
+	tags1 := make(map[string]string, size)
+	tags5 := make(map[string]string, size)
+	tags15 := make(map[string]string, size)
+	tagsMean := make(map[string]string, size)
+	tagsCount := make(map[string]string, size)
+	for k, v := range tags {
+		tags1[k] = v
+		tags5[k] = v
+		tags15[k] = v
+		tagsMean[k] = v
+		tagsCount[k] = v
+	}
+	tags1["rate"] = string(RATE1)
+	r.ReportMeter(name, tags1, m.Rate1())
+	tags5["rate"] = string(RATE5)
+	r.ReportMeter(name, tags5, m.Rate5())
+	tags15["rate"] = string(RATE15)
+	r.ReportMeter(name, tags15, m.Rate15())
+	tagsMean["rate"] = string(RATE_MEAN)
+	r.ReportMeter(name, tagsMean, m.RateMean())
+	tagsCount["rate"] = string(COUNT)
+	r.ReportMeter(name, tagsCount, float64(m.Count()))
 }
 
 type counter struct {
@@ -202,6 +251,14 @@ func (t *timer) snapshot() []time.Duration {
 type timerNoReporterSink struct {
 	sync.RWMutex
 	timer *timer
+}
+
+func (r *timerNoReporterSink) ReportMeter(
+	name string,
+	tags map[string]string,
+	value float64,
+) {
+
 }
 
 func (r *timerNoReporterSink) ReportCounter(
@@ -440,6 +497,8 @@ func newHistogramBucket(
 
 // NullStatsReporter is an implementation of StatsReporter than simply does nothing.
 var NullStatsReporter StatsReporter = nullStatsReporter{}
+
+func (r nullStatsReporter) ReportMeter(name string, tags map[string]string, value float64) {}
 
 func (r nullStatsReporter) ReportCounter(name string, tags map[string]string, value int64) {
 }

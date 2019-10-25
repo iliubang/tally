@@ -21,7 +21,7 @@
 package m3
 
 import (
-	"github.com/uber-go/tally"
+	"github.com/iliubang/tally"
 )
 
 var (

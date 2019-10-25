@@ -22,15 +22,20 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
-	"github.com/uber-go/tally"
+	"github.com/iliubang/tally"
 )
 
 type printStatsReporter struct{}
 
 func newPrintStatsReporter() tally.StatsReporter {
 	return &printStatsReporter{}
+}
+
+func (r *printStatsReporter) ReportMeter(name string, tags map[string]string, value float64) {
+	fmt.Printf("meter %v %f\n", tags, value)
 }
 
 func (r *printStatsReporter) ReportCounter(name string, _ map[string]string, value int64) {
@@ -100,6 +105,7 @@ func main() {
 	measureThing := rootScope.Gauge("thing")
 	timings := rootScope.Timer("timings")
 	tickCounter := subScope.Counter("ticks")
+	meter := rootScope.Meter("meter")
 
 	// Spin forever, watch report get called
 	go func() {
@@ -109,6 +115,7 @@ func main() {
 				measureThing.Update(42.1)
 			case <-littlehand.C:
 				tickCounter.Inc(1)
+				meter.Mark(int64(rand.Intn(100)))
 			case <-hugehand.C:
 				timings.Record(3200 * time.Millisecond)
 			}

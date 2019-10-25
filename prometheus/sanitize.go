@@ -21,7 +21,7 @@
 package prometheus
 
 import (
-	"github.com/uber-go/tally"
+	"github.com/iliubang/tally"
 )
 
 var (

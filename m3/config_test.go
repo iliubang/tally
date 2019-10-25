@@ -23,7 +23,7 @@ package m3
 import (
 	"testing"
 
-	"github.com/uber-go/tally/m3/thriftudp"
+	"github.com/iliubang/tally/m3/thriftudp"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

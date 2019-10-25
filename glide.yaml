@@ -1,4 +1,4 @@
-package: github.com/uber-go/tally
+package: github.com/iliubang/tally
 version: 1.0.0
 import:
 - package: github.com/cactus/go-statsd-client

@@ -42,6 +42,13 @@ type StatsReporter interface {
 		value int64,
 	)
 
+	// ReportMeter reports a meter value
+	ReportMeter(
+		name string,
+		tags map[string]string,
+		value float64,
+	)
+
 	// ReportGauge reports a gauge value
 	ReportGauge(
 		name string,
@@ -82,6 +89,11 @@ type StatsReporter interface {
 type CachedStatsReporter interface {
 	BaseStatsReporter
 
+	AllocateMeter(
+		name string,
+		tags map[string]string,
+	) CachedMeter
+
 	// AllocateCounter pre allocates a counter data structure with name & tags.
 	AllocateCounter(
 		name string,
@@ -107,6 +119,20 @@ type CachedStatsReporter interface {
 		tags map[string]string,
 		buckets Buckets,
 	) CachedHistogram
+}
+
+type T_METER string
+
+const (
+	RATE1     T_METER = "min_1"
+	RATE5     T_METER = "min_5"
+	RATE15    T_METER = "min_15"
+	RATE_MEAN T_METER = "mean_rate"
+	COUNT     T_METER = "count"
+)
+
+type CachedMeter interface {
+	ReportMeter(rate T_METER, value float64)
 }
 
 // CachedCount interface for reporting an individual counter

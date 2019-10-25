@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/uber-go/tally"
+	"github.com/iliubang/tally"
 
 	prom "github.com/m3db/prometheus_client_golang/prometheus"
 	"github.com/m3db/prometheus_client_golang/prometheus/promhttp"
@@ -162,6 +162,7 @@ type promTimerVec struct {
 type cachedMetric struct {
 	counter     prom.Counter
 	gauge       prom.Gauge
+	meter       *prom.GaugeVec
 	reportTimer func(d time.Duration)
 	histogram   prom.Histogram
 	summary     prom.Summary
@@ -169,6 +170,10 @@ type cachedMetric struct {
 
 func (m *cachedMetric) ReportCount(value int64) {
 	m.counter.Add(float64(value))
+}
+
+func (m *cachedMetric) ReportMeter(rate tally.T_RATE, value float64) {
+	m.meter.WithLabelValues(string(rate)).Set(value)
 }
 
 func (m *cachedMetric) ReportGauge(value float64) {
@@ -213,10 +218,11 @@ func (b cachedHistogramBucket) ReportSamples(value int64) {
 
 type noopMetric struct{}
 
-func (m noopMetric) ReportCount(value int64)            {}
-func (m noopMetric) ReportGauge(value float64)          {}
-func (m noopMetric) ReportTimer(interval time.Duration) {}
-func (m noopMetric) ReportSamples(value int64)          {}
+func (m noopMetric) ReportCount(value int64)                      {}
+func (m noopMetric) ReportMeter(rate tally.T_RATE, value float64) {}
+func (m noopMetric) ReportGauge(value float64)                    {}
+func (m noopMetric) ReportTimer(interval time.Duration)           {}
+func (m noopMetric) ReportSamples(value int64)                    {}
 func (m noopMetric) ValueBucket(lower, upper float64) tally.CachedHistogramBucket {
 	return m
 }
@@ -344,6 +350,17 @@ func (r *reporter) counterVec(
 
 	r.counters[id] = ctr
 	return ctr, nil
+}
+
+func (r *reporter) AllocateMeter(name string, tags map[string]string) tally.CachedMeter {
+	tags["meter_type"] = ""
+	tagKeys := keysFromMap(tags)
+	gaugeVec, err := r.gaugeVec(name, tagKeys, name+" timer")
+	if err != nil {
+		r.onRegisterError(err)
+		return noopMetric{}
+	}
+	return &cachedMetric{meter: gaugeVec}
 }
 
 // AllocateCounter implements tally.CachedStatsReporter.

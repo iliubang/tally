@@ -68,11 +68,13 @@ type scope struct {
 	status   scopeStatus
 
 	cm sync.RWMutex
+	me sync.RWMutex
 	gm sync.RWMutex
 	tm sync.RWMutex
 	hm sync.RWMutex
 
 	counters   map[string]*counter
+	meters     map[string]*meter
 	gauges     map[string]*gauge
 	timers     map[string]*timer
 	histograms map[string]*histogram
@@ -162,6 +164,7 @@ func newRootScope(opts ScopeOptions, interval time.Duration) *scope {
 		},
 
 		counters:   make(map[string]*counter),
+		meters:     make(map[string]*meter),
 		gauges:     make(map[string]*gauge),
 		timers:     make(map[string]*timer),
 		histograms: make(map[string]*histogram),
@@ -189,6 +192,12 @@ func (s *scope) report(r StatsReporter) {
 	}
 	s.cm.RUnlock()
 
+	s.me.RLock()
+	for name, meter := range s.meters {
+		meter.report(s.fullyQualifiedName(name), s.tags, r)
+	}
+	s.me.RUnlock()
+
 	s.gm.RLock()
 	for name, gauge := range s.gauges {
 		gauge.report(s.fullyQualifiedName(name), s.tags, r)
@@ -210,6 +219,13 @@ func (s *scope) cachedReport() {
 		counter.cachedReport()
 	}
 	s.cm.RUnlock()
+
+	// report cached meter
+	s.me.RLock()
+	for _, meter := range s.meters {
+		meter.cachedReport()
+	}
+	s.me.RUnlock()
 
 	s.gm.RLock()
 	for _, gauge := range s.gauges {
@@ -270,6 +286,29 @@ func (s *scope) reportRegistryWithLock() {
 		s.cachedReporter.Flush()
 	}
 	s.registry.RUnlock()
+}
+
+func (s *scope) Meter(name string) Meter {
+	name = s.sanitizer.Name(name)
+	s.me.RLock()
+	val, ok := s.meters[name]
+	s.me.RUnlock()
+	if !ok {
+		s.me.Lock()
+		val, ok = s.meters[name]
+		if !ok {
+			var cachedMeter CachedMeter
+			if s.cachedReporter != nil {
+				cachedMeter = s.cachedReporter.AllocateMeter(
+					s.fullyQualifiedName(name), s.tags,
+				)
+			}
+			val = newMeter(cachedMeter)
+			s.meters[name] = val
+		}
+		s.me.Unlock()
+	}
+	return val
 }
 
 func (s *scope) Counter(name string) Counter {
