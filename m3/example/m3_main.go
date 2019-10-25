@@ -29,9 +29,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/iliubang/tally"
-	"github.com/iliubang/tally/m3"
-	m3thrift "github.com/iliubang/tally/m3/thrift"
+	"github.com/iliubang/tally/v3"
+	"github.com/iliubang/tally/v3/m3"
+	m3thrift "github.com/iliubang/tally/v3/m3/thrift"
 
 	validator "gopkg.in/validator.v2"
 	yaml "gopkg.in/yaml.v2"

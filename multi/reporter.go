@@ -23,7 +23,7 @@ package multi
 import (
 	"time"
 
-	"github.com/iliubang/tally"
+	"github.com/iliubang/tally/v3"
 )
 
 type multi struct {

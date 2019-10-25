@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iliubang/tally"
+	"github.com/iliubang/tally/v3"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

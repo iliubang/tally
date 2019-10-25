@@ -27,7 +27,7 @@ import (
 
 	prom "github.com/m3db/prometheus_client_golang/prometheus"
 	dto "github.com/m3db/prometheus_client_model/go"
-	"github.com/iliubang/tally"
+	"github.com/iliubang/tally/v3"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

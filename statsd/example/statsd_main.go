@@ -25,8 +25,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/iliubang/tally"
-	statsdreporter "github.com/iliubang/tally/statsd"
+	"github.com/iliubang/tally/v3"
+	statsdreporter "github.com/iliubang/tally/v3/statsd"
 
 	"github.com/cactus/go-statsd-client/statsd"
 )

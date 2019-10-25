@@ -20,7 +20,7 @@
 
 package instrument
 
-import "github.com/iliubang/tally"
+import "github.com/iliubang/tally/v3"
 
 const (
 	resultType        = "result_type"

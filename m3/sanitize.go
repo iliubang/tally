@@ -21,7 +21,7 @@
 package m3
 
 import (
-	"github.com/iliubang/tally"
+	"github.com/iliubang/tally/v3"
 )
 
 var (

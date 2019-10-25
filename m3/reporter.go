@@ -30,11 +30,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iliubang/tally"
-	customtransport "github.com/iliubang/tally/m3/customtransports"
-	m3thrift "github.com/iliubang/tally/m3/thrift"
-	"github.com/iliubang/tally/m3/thriftudp"
-	"github.com/iliubang/tally/thirdparty/github.com/apache/thrift/lib/go/thrift"
+	"github.com/iliubang/tally/v3"
+	customtransport "github.com/iliubang/tally/v3/m3/customtransports"
+	m3thrift "github.com/iliubang/tally/v3/m3/thrift"
+	"github.com/iliubang/tally/v3/m3/thriftudp"
+	"github.com/iliubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
 )
 
 // Protocol describes a M3 thrift transport protocol.

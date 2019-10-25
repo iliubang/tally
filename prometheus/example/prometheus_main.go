@@ -26,8 +26,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/iliubang/tally"
-	promreporter "github.com/iliubang/tally/prometheus"
+	"github.com/iliubang/tally/v3"
+	promreporter "github.com/iliubang/tally/v3/prometheus"
 )
 
 func main() {

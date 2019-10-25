@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iliubang/tally"
+	"github.com/iliubang/tally/v3"
 
 	prom "github.com/m3db/prometheus_client_golang/prometheus"
 	"github.com/m3db/prometheus_client_golang/prometheus/promhttp"
