@@ -1,4 +1,4 @@
-module github.com/iliubang/tally
+module github.com/iliubang/tally/v3
 
 go 1.13
 
