@@ -45,6 +45,14 @@ func NewMultiReporter(
 	}
 }
 
+func (r *multi) ReportMeter(
+	name string,
+	tags map[string]string,
+	value float64,
+) {
+	// TODO implements
+}
+
 func (r *multi) ReportCounter(
 	name string,
 	tags map[string]string,
@@ -111,6 +119,17 @@ func (r *multi) Flush() {
 	r.multiBaseReporters.Flush()
 }
 
+type noopMetric struct{}
+
+func (m noopMetric) ReportCount(value int64)                       {}
+func (m noopMetric) ReportMeter(rate tally.T_METER, value float64) {}
+func (m noopMetric) ReportGauge(value float64)                     {}
+func (m noopMetric) ReportTimer(interval time.Duration)            {}
+func (m noopMetric) ReportSamples(value int64)                     {}
+func (m noopMetric) ValueBucket(lower, upper float64) tally.CachedHistogramBucket {
+	return m
+}
+
 type multiCached struct {
 	multiBaseReporters multiBaseReporters
 	reporters          []tally.CachedStatsReporter
@@ -128,6 +147,13 @@ func NewMultiCachedReporter(
 		multiBaseReporters: baseReporters,
 		reporters:          r,
 	}
+}
+
+func (r *multiCached) AllocateMeter(
+	name string,
+	tags map[string]string,
+) tally.CachedMeter {
+	return &noopMetric{}
 }
 
 func (r *multiCached) AllocateCounter(

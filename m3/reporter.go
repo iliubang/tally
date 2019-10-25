@@ -248,6 +248,13 @@ func NewReporter(opts Options) (Reporter, error) {
 	return r, nil
 }
 
+func (r *reporter) AllocateMeter(
+	name string,
+	tags map[string]string,
+) tally.CachedMeter {
+	return &noopMetric{}
+}
+
 // AllocateCounter implements tally.CachedStatsReporter.
 func (r *reporter) AllocateCounter(
 	name string, tags map[string]string,
@@ -568,6 +575,8 @@ func (c cachedMetric) ReportSamples(value int64) {
 
 type noopMetric struct {
 }
+
+func (m noopMetric) ReportMeter(rate tally.T_METER, value float64) {}
 
 func (c noopMetric) ReportCount(value int64) {
 }

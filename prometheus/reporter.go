@@ -172,7 +172,7 @@ func (m *cachedMetric) ReportCount(value int64) {
 	m.counter.Add(float64(value))
 }
 
-func (m *cachedMetric) ReportMeter(rate tally.T_RATE, value float64) {
+func (m *cachedMetric) ReportMeter(rate tally.T_METER, value float64) {
 	m.meter.WithLabelValues(string(rate)).Set(value)
 }
 
@@ -218,11 +218,11 @@ func (b cachedHistogramBucket) ReportSamples(value int64) {
 
 type noopMetric struct{}
 
-func (m noopMetric) ReportCount(value int64)                      {}
-func (m noopMetric) ReportMeter(rate tally.T_RATE, value float64) {}
-func (m noopMetric) ReportGauge(value float64)                    {}
-func (m noopMetric) ReportTimer(interval time.Duration)           {}
-func (m noopMetric) ReportSamples(value int64)                    {}
+func (m noopMetric) ReportCount(value int64)                       {}
+func (m noopMetric) ReportMeter(rate tally.T_METER, value float64) {}
+func (m noopMetric) ReportGauge(value float64)                     {}
+func (m noopMetric) ReportTimer(interval time.Duration)            {}
+func (m noopMetric) ReportSamples(value int64)                     {}
 func (m noopMetric) ValueBucket(lower, upper float64) tally.CachedHistogramBucket {
 	return m
 }
