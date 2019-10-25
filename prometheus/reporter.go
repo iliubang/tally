@@ -1,8 +1,7 @@
 // Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
+// of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
@@ -159,10 +158,15 @@ type promTimerVec struct {
 	histogram *prom.HistogramVec
 }
 
+type meter struct {
+	gv   *prom.GaugeVec
+	tags map[string]string
+}
+
 type cachedMetric struct {
 	counter     prom.Counter
 	gauge       prom.Gauge
-	meter       *prom.GaugeVec
+	meter       meter
 	reportTimer func(d time.Duration)
 	histogram   prom.Histogram
 	summary     prom.Summary
@@ -173,7 +177,15 @@ func (m *cachedMetric) ReportCount(value int64) {
 }
 
 func (m *cachedMetric) ReportMeter(rate tally.T_METER, value float64) {
-	m.meter.WithLabelValues(string(rate)).Set(value)
+	tags := make(map[string]string, len(m.meter.tags))
+	for k, v := range m.meter.tags {
+		if k == "meter_type" {
+			tags[k] = string(rate)
+		} else {
+			tags[k] = v
+		}
+	}
+	m.meter.gv.With(tags).Set(value)
 }
 
 func (m *cachedMetric) ReportGauge(value float64) {
@@ -353,6 +365,9 @@ func (r *reporter) counterVec(
 }
 
 func (r *reporter) AllocateMeter(name string, tags map[string]string) tally.CachedMeter {
+	if len(tags) == 0 {
+		tags = make(map[string]string, 1)
+	}
 	tags["meter_type"] = ""
 	tagKeys := keysFromMap(tags)
 	gaugeVec, err := r.gaugeVec(name, tagKeys, name+" timer")
@@ -360,7 +375,7 @@ func (r *reporter) AllocateMeter(name string, tags map[string]string) tally.Cach
 		r.onRegisterError(err)
 		return noopMetric{}
 	}
-	return &cachedMetric{meter: gaugeVec}
+	return &cachedMetric{meter: meter{gv: gaugeVec, tags: tags}}
 }
 
 // AllocateCounter implements tally.CachedStatsReporter.
