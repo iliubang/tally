@@ -456,6 +456,7 @@ func (s *scope) subscope(prefix string, immutableTags map[string]string) Scope {
 		registry:       s.registry,
 
 		counters:   make(map[string]*counter),
+		meters:     make(map[string]*meter),
 		gauges:     make(map[string]*gauge),
 		timers:     make(map[string]*timer),
 		histograms: make(map[string]*histogram),

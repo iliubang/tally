@@ -35,7 +35,7 @@ func newPrintStatsReporter() tally.StatsReporter {
 }
 
 func (r *printStatsReporter) ReportMeter(name string, tags map[string]string, value float64) {
-	fmt.Printf("meter %v %f\n", tags, value)
+	fmt.Printf("meter: %s %v %f\n", name, tags, value)
 }
 
 func (r *printStatsReporter) ReportCounter(name string, _ map[string]string, value int64) {
@@ -100,12 +100,14 @@ func main() {
 
 	bighand := time.NewTicker(time.Millisecond * 2300)
 	littlehand := time.NewTicker(time.Millisecond * 10)
-	hugehand := time.NewTicker(time.Millisecond * 5100)
+	hugehand := time.NewTicker(time.Millisecond * 200)
 
 	measureThing := rootScope.Gauge("thing")
 	timings := rootScope.Timer("timings")
 	tickCounter := subScope.Counter("ticks")
 	meter := rootScope.Meter("meter")
+	meter1 := rootScope.Tagged(map[string]string{"METHOD": "GET"}).Meter("request")
+	meter2 := rootScope.Tagged(map[string]string{"METHOD": "POST"}).Meter("request")
 
 	// Spin forever, watch report get called
 	go func() {
@@ -116,6 +118,8 @@ func main() {
 			case <-littlehand.C:
 				tickCounter.Inc(1)
 				meter.Mark(int64(rand.Intn(100)))
+				meter1.Mark(1)
+				meter2.Mark(1)
 			case <-hugehand.C:
 				timings.Record(3200 * time.Millisecond)
 			}

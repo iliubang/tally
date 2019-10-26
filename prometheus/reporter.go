@@ -21,6 +21,7 @@ package prometheus
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -83,6 +84,9 @@ type Reporter interface {
 	// HTTPHandler provides the Prometheus HTTP scrape handler.
 	HTTPHandler() http.Handler
 
+	// JsonHTTPHandler provides the json http scrape handler.
+	JsonHTTPHandler() http.Handler
+
 	// RegisterCounter is a helper method to initialize a counter
 	// in the Prometheus backend with a given help text.
 	// If not called explicitly, the Reporter will create one for
@@ -143,6 +147,7 @@ type reporter struct {
 	sync.RWMutex
 	registerer      prom.Registerer
 	gatherer        prom.Gatherer
+	jsonTransformer *jsonTransformer
 	timerType       TimerType
 	objectives      map[float64]float64
 	buckets         []float64
@@ -246,6 +251,14 @@ func (r *reporter) HTTPHandler() http.Handler {
 	return promhttp.HandlerFor(r.gatherer, promhttp.HandlerOpts{})
 }
 
+func (r *reporter) JsonHTTPHandler() http.Handler {
+	return http.HandlerFunc(func(rsp http.ResponseWriter, _ *http.Request) {
+		rsp.Header().Set("Content-Type", "application/json; charset=utf-8")
+		j := r.jsonTransformer.toJson()
+		fmt.Fprintf(rsp, string(j))
+	})
+}
+
 // TimerType describes a type of timer
 type TimerType int
 
@@ -316,6 +329,7 @@ func NewReporter(opts Options) Reporter {
 	return &reporter{
 		registerer:      opts.Registerer,
 		gatherer:        opts.Gatherer,
+		jsonTransformer: newJsonTransformer(opts.Gatherer),
 		timerType:       opts.DefaultTimerType,
 		buckets:         opts.DefaultHistogramBuckets,
 		objectives:      opts.DefaultSummaryObjectives,
@@ -365,10 +379,7 @@ func (r *reporter) counterVec(
 }
 
 func (r *reporter) AllocateMeter(name string, tags map[string]string) tally.CachedMeter {
-	if len(tags) == 0 {
-		tags = make(map[string]string, 1)
-	}
-	tags["meter_type"] = ""
+	r.initTags(tags, tally.METER)
 	tagKeys := keysFromMap(tags)
 	gaugeVec, err := r.gaugeVec(name, tagKeys, name+" timer")
 	if err != nil {
@@ -380,6 +391,7 @@ func (r *reporter) AllocateMeter(name string, tags map[string]string) tally.Cach
 
 // AllocateCounter implements tally.CachedStatsReporter.
 func (r *reporter) AllocateCounter(name string, tags map[string]string) tally.CachedCount {
+	r.initTags(tags, tally.COUNTER)
 	tagKeys := keysFromMap(tags)
 	counterVec, err := r.counterVec(name, tagKeys, name+" counter")
 	if err != nil {
@@ -429,6 +441,7 @@ func (r *reporter) gaugeVec(
 
 // AllocateGauge implements tally.CachedStatsReporter.
 func (r *reporter) AllocateGauge(name string, tags map[string]string) tally.CachedGauge {
+	r.initTags(tags, tally.GAUGE)
 	tagKeys := keysFromMap(tags)
 	gaugeVec, err := r.gaugeVec(name, tagKeys, name+" gauge")
 	if err != nil {
@@ -548,6 +561,7 @@ func (r *reporter) AllocateTimer(name string, tags map[string]string) tally.Cach
 		timer tally.CachedTimer
 		err   error
 	)
+	r.initTags(tags, tally.TIMER)
 	tagKeys := keysFromMap(tags)
 	timerType, buckets, objectives := r.timerConfig(nil)
 	switch timerType {
@@ -582,6 +596,7 @@ func (r *reporter) AllocateHistogram(
 	tags map[string]string,
 	buckets tally.Buckets,
 ) tally.CachedHistogram {
+	r.initTags(tags, tally.HISTOGRAM)
 	tagKeys := keysFromMap(tags)
 	histogramVec, err := r.histogramVec(name, tagKeys, name+" histogram", buckets.AsValues())
 	if err != nil {
@@ -589,6 +604,23 @@ func (r *reporter) AllocateHistogram(
 		return noopMetric{}
 	}
 	return &cachedMetric{histogram: histogramVec.With(tags)}
+}
+
+const (
+	KEY_METER_TYPE  = "meter_type"
+	KEY_METRIC_TYPE = "metric_type"
+)
+
+func (r *reporter) initTags(tags map[string]string, t tally.METRIC_TYPE) {
+	if nil == tags {
+		if t == tally.METER {
+			tags = make(map[string]string, 2)
+			tags[KEY_METER_TYPE] = ""
+		} else {
+			tags = make(map[string]string, 1)
+		}
+	}
+	tags[KEY_METRIC_TYPE] = string(t)
 }
 
 func (r *reporter) Capabilities() tally.Capabilities {

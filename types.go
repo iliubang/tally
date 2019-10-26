@@ -28,6 +28,16 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
+type METRIC_TYPE string
+
+const (
+	COUNTER   METRIC_TYPE = "counter"
+	METER     METRIC_TYPE = "meter"
+	TIMER     METRIC_TYPE = "timer"
+	GAUGE     METRIC_TYPE = "gauge"
+	HISTOGRAM METRIC_TYPE = "histogram"
+)
+
 // Scope is a namespace wrapper around a stats reporter, ensuring that
 // all emitted values have a given prefix or set of tags.
 type Scope interface {
