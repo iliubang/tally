@@ -184,7 +184,7 @@ func (m *cachedMetric) ReportCount(value int64) {
 func (m *cachedMetric) ReportMeter(rate tally.T_METER, value float64) {
 	tags := make(map[string]string, len(m.meter.tags))
 	for k, v := range m.meter.tags {
-		if k == "meter_type" {
+		if k == KEY_METER_TYPE {
 			tags[k] = string(rate)
 		} else {
 			tags[k] = v
@@ -618,6 +618,10 @@ func (r *reporter) initTags(tags map[string]string, t tally.METRIC_TYPE) {
 			tags[KEY_METER_TYPE] = ""
 		} else {
 			tags = make(map[string]string, 1)
+		}
+	} else {
+		if t == tally.METER {
+			tags[KEY_METER_TYPE] = ""
 		}
 	}
 	tags[KEY_METRIC_TYPE] = string(t)

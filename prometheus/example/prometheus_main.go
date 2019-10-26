@@ -21,7 +21,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -31,33 +30,21 @@ import (
 )
 
 func main() {
-	r := promreporter.NewReporter(promreporter.Options{})
-
-	// Note: `promreporter.DefaultSeparator` is "_".
-	// Prometheus doesnt like metrics with "." or "-" in them.
+	reporter := promreporter.NewReporter(promreporter.Options{})
 	scope, closer := tally.NewRootScope(tally.ScopeOptions{
-		Prefix:         "my_service",
-		Tags:           map[string]string{},
-		CachedReporter: r,
+		Prefix:         "service_router",
+		Tags:           map[string]string{"name": "liubang_test"},
+		CachedReporter: reporter,
 		Separator:      promreporter.DefaultSeparator,
-	}, 1*time.Second)
+	}, time.Second)
+
 	defer closer.Close()
-
-	counter := scope.Tagged(map[string]string{
-		"foo": "bar",
-	}).Counter("test_counter")
-
-	gauge := scope.Tagged(map[string]string{
-		"foo": "baz",
-	}).Gauge("test_gauge")
-
-	timer := scope.Tagged(map[string]string{
-		"foo": "qux",
-	}).Timer("test_timer_summary")
-
-	histogram := scope.Tagged(map[string]string{
-		"foo": "quk",
-	}).Histogram("test_histogram", tally.DefaultBuckets)
+	counter := scope.Tagged(map[string]string{"counter": "bar"}).Counter("test_counter")
+	gauge := scope.Tagged(map[string]string{"gauge": "aaa"}).Gauge("test_gauge")
+	timer := scope.Tagged(map[string]string{"timer": "bbb"}).Timer("test_timer")
+	bucket := tally.DefaultBuckets
+	histogram := scope.Tagged(map[string]string{"histogram": "ccc"}).Histogram("test_histogram", bucket)
+	meter := scope.Meter("test_meter")
 
 	go func() {
 		for {
@@ -77,14 +64,15 @@ func main() {
 		for {
 			tsw := timer.Start()
 			hsw := histogram.Start()
-			time.Sleep(time.Duration(rand.Float64() * float64(time.Second)))
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
+			meter.Mark(1)
 			tsw.Stop()
 			hsw.Stop()
 		}
 	}()
 
-	http.Handle("/metrics", r.HTTPHandler())
-	fmt.Printf("Serving :8080/metrics\n")
-	fmt.Printf("%v\n", http.ListenAndServe(":8080", nil))
+	http.Handle("/metrics", reporter.HTTPHandler())
+	http.Handle("/json", reporter.JsonHTTPHandler())
+	http.ListenAndServe(":8080", nil)
 	select {}
 }

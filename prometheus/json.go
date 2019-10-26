@@ -97,6 +97,23 @@ func (t *jsonTransformer) exportCounter(metrics []*model.Metric) generic {
 	return res
 }
 
+func (t *jsonTransformer) quantileKey(val float64) string {
+	s := strconv.FormatFloat(val, 'f', 4, 64)
+	if s == "0.5000" {
+		return "p50"
+	} else if s == "0.7500" {
+		return "p75"
+	} else if s == "0.9500" {
+		return "p95"
+	} else if s == "0.9900" {
+		return "p99"
+	} else if s == "0.9990" {
+		return "p999"
+	} else {
+		return ""
+	}
+}
+
 func (t *jsonTransformer) exportSummary(metrics []*model.Metric) generic {
 	res := make([]generic, len(metrics))
 	for idx, m := range metrics {
@@ -110,7 +127,7 @@ func (t *jsonTransformer) exportSummary(metrics []*model.Metric) generic {
 		quantiles := s.GetQuantile()
 		qarr := make(map[string]float64, len(quantiles))
 		for _, quality := range quantiles {
-			qarr[strconv.FormatFloat(quality.GetQuantile(), 'f', 4, 64)] = quality.GetValue()
+			qarr[t.quantileKey(quality.GetQuantile())] = quality.GetValue()
 		}
 		val["Quantile"] = qarr
 		res[idx] = val
