@@ -108,7 +108,7 @@ func (t *jsonTransformer) quantileKey(val float64) string {
 	} else if s == "0.9900" {
 		return "p99"
 	} else if s == "0.9990" {
-		return "p999"
+		return "p99.9"
 	} else {
 		return ""
 	}
