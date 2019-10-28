@@ -32,7 +32,7 @@ import (
 func main() {
 	reporter := promreporter.NewReporter(promreporter.Options{})
 	scope, closer := tally.NewRootScope(tally.ScopeOptions{
-		Prefix:         "service_router",
+		Prefix:         "service_router_test",
 		Tags:           map[string]string{"name": "liubang_test"},
 		CachedReporter: reporter,
 		Separator:      promreporter.DefaultSeparator,
@@ -45,6 +45,10 @@ func main() {
 	bucket := tally.DefaultBuckets
 	histogram := scope.Tagged(map[string]string{"histogram": "ccc"}).Histogram("test_histogram", bucket)
 	meter := scope.Meter("test_meter")
+	meter1 := scope.Meter("test_meter")
+	_ = meter1
+	meter2 := scope.Tagged(map[string]string{"aaa": "bbb"}).Meter("test_meter2")
+	meter3 := scope.Tagged(map[string]string{"aaa": "ccc"}).Meter("test_meter2")
 
 	go func() {
 		for {
@@ -66,6 +70,8 @@ func main() {
 			hsw := histogram.Start()
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
 			meter.Mark(1)
+			meter2.Mark(1)
+			meter3.Mark(1)
 			tsw.Stop()
 			hsw.Stop()
 		}

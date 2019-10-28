@@ -379,26 +379,26 @@ func (r *reporter) counterVec(
 }
 
 func (r *reporter) AllocateMeter(name string, tags map[string]string) tally.CachedMeter {
-	r.initTags(tags, tally.METER)
-	tagKeys := keysFromMap(tags)
+	newTags := r.initTags(tags, tally.METER)
+	tagKeys := keysFromMap(newTags)
 	gaugeVec, err := r.gaugeVec(name, tagKeys, name+" timer")
 	if err != nil {
 		r.onRegisterError(err)
 		return noopMetric{}
 	}
-	return &cachedMetric{meter: meter{gv: gaugeVec, tags: tags}}
+	return &cachedMetric{meter: meter{gv: gaugeVec, tags: newTags}}
 }
 
 // AllocateCounter implements tally.CachedStatsReporter.
 func (r *reporter) AllocateCounter(name string, tags map[string]string) tally.CachedCount {
-	r.initTags(tags, tally.COUNTER)
-	tagKeys := keysFromMap(tags)
+	newTags := r.initTags(tags, tally.COUNTER)
+	tagKeys := keysFromMap(newTags)
 	counterVec, err := r.counterVec(name, tagKeys, name+" counter")
 	if err != nil {
 		r.onRegisterError(err)
 		return noopMetric{}
 	}
-	return &cachedMetric{counter: counterVec.With(tags)}
+	return &cachedMetric{counter: counterVec.With(newTags)}
 }
 
 func (r *reporter) RegisterGauge(
@@ -441,14 +441,14 @@ func (r *reporter) gaugeVec(
 
 // AllocateGauge implements tally.CachedStatsReporter.
 func (r *reporter) AllocateGauge(name string, tags map[string]string) tally.CachedGauge {
-	r.initTags(tags, tally.GAUGE)
-	tagKeys := keysFromMap(tags)
+	newTags := r.initTags(tags, tally.GAUGE)
+	tagKeys := keysFromMap(newTags)
 	gaugeVec, err := r.gaugeVec(name, tagKeys, name+" gauge")
 	if err != nil {
 		r.onRegisterError(err)
 		return noopMetric{}
 	}
-	return &cachedMetric{gauge: gaugeVec.With(tags)}
+	return &cachedMetric{gauge: gaugeVec.With(newTags)}
 }
 
 func (r *reporter) RegisterTimer(
@@ -561,15 +561,15 @@ func (r *reporter) AllocateTimer(name string, tags map[string]string) tally.Cach
 		timer tally.CachedTimer
 		err   error
 	)
-	r.initTags(tags, tally.TIMER)
-	tagKeys := keysFromMap(tags)
+	newTags := r.initTags(tags, tally.TIMER)
+	tagKeys := keysFromMap(newTags)
 	timerType, buckets, objectives := r.timerConfig(nil)
 	switch timerType {
 	case HistogramTimerType:
 		var histogramVec *prom.HistogramVec
 		histogramVec, err = r.histogramVec(name, tagKeys, name+" histogram", buckets)
 		if err == nil {
-			t := &cachedMetric{histogram: histogramVec.With(tags)}
+			t := &cachedMetric{histogram: histogramVec.With(newTags)}
 			t.reportTimer = t.reportTimerHistogram
 			timer = t
 		}
@@ -577,7 +577,7 @@ func (r *reporter) AllocateTimer(name string, tags map[string]string) tally.Cach
 		var summaryVec *prom.SummaryVec
 		summaryVec, err = r.summaryVec(name, tagKeys, name+" summary", objectives)
 		if err == nil {
-			t := &cachedMetric{summary: summaryVec.With(tags)}
+			t := &cachedMetric{summary: summaryVec.With(newTags)}
 			t.reportTimer = t.reportTimerSummary
 			timer = t
 		}
@@ -596,14 +596,14 @@ func (r *reporter) AllocateHistogram(
 	tags map[string]string,
 	buckets tally.Buckets,
 ) tally.CachedHistogram {
-	r.initTags(tags, tally.HISTOGRAM)
-	tagKeys := keysFromMap(tags)
+	newTags := r.initTags(tags, tally.HISTOGRAM)
+	tagKeys := keysFromMap(newTags)
 	histogramVec, err := r.histogramVec(name, tagKeys, name+" histogram", buckets.AsValues())
 	if err != nil {
 		r.onRegisterError(err)
 		return noopMetric{}
 	}
-	return &cachedMetric{histogram: histogramVec.With(tags)}
+	return &cachedMetric{histogram: histogramVec.With(newTags)}
 }
 
 const (
@@ -611,20 +611,23 @@ const (
 	KEY_METRIC_TYPE = "metric_type"
 )
 
-func (r *reporter) initTags(tags map[string]string, t tally.METRIC_TYPE) {
-	if nil == tags {
-		if t == tally.METER {
-			tags = make(map[string]string, 2)
-			tags[KEY_METER_TYPE] = ""
-		} else {
-			tags = make(map[string]string, 1)
-		}
+func (r *reporter) initTags(tags map[string]string, t tally.METRIC_TYPE) map[string]string {
+	var result map[string]string
+
+	if t == tally.METER {
+		result = make(map[string]string, len(tags)+2)
+		result[KEY_METER_TYPE] = ""
 	} else {
-		if t == tally.METER {
-			tags[KEY_METER_TYPE] = ""
-		}
+		result = make(map[string]string, len(tags)+1)
 	}
-	tags[KEY_METRIC_TYPE] = string(t)
+
+	result[KEY_METRIC_TYPE] = string(t)
+
+	for k, v := range tags {
+		result[k] = v
+	}
+
+	return result
 }
 
 func (r *reporter) Capabilities() tally.Capabilities {
