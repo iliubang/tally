@@ -3,6 +3,7 @@ package prometheus
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
 
 	prom "github.com/m3db/client_golang/prometheus"
@@ -57,7 +58,11 @@ func (t *jsonTransformer) exportHistogram(metrics []*model.Metric) generic {
 		val["Type"] = "Histogram"
 		val["Tags"] = t.exportLables(lables)
 		val["Count"] = h.GetSampleCount()
-		val["Sum"] = h.GetSampleSum()
+		if math.IsNaN(h.GetSampleSum()) {
+			val["Sum"] = 0.0
+		} else {
+			val["Sum"] = h.GetSampleSum()
+		}
 		buckets := h.GetBucket()
 		barr := make(map[string]generic, len(buckets))
 		for _, b := range buckets {
@@ -77,7 +82,11 @@ func (t *jsonTransformer) exportGauge(metrics []*model.Metric) generic {
 		lables := m.GetLabel()
 		val["Type"] = "Gauge"
 		val["Tags"] = t.exportLables(lables)
-		val["Value"] = g.GetValue()
+		if math.IsNaN(g.GetValue()) {
+			val["Value"] = 0.0
+		} else {
+			val["Value"] = g.GetValue()
+		}
 		res[idx] = val
 	}
 	return res
@@ -91,7 +100,11 @@ func (t *jsonTransformer) exportCounter(metrics []*model.Metric) generic {
 		lables := m.GetLabel()
 		val["Type"] = "Counter"
 		val["Tags"] = t.exportLables(lables)
-		val["Value"] = c.GetValue()
+		if math.IsNaN(c.GetValue()) {
+			val["Value"] = 0
+		} else {
+			val["Value"] = c.GetValue()
+		}
 		res[idx] = val
 	}
 	return res
@@ -123,11 +136,19 @@ func (t *jsonTransformer) exportSummary(metrics []*model.Metric) generic {
 		val["Type"] = "Summary"
 		val["Tags"] = t.exportLables(lables)
 		val["Count"] = s.GetSampleCount()
-		val["Sum"] = s.GetSampleSum()
+		if math.IsNaN(s.GetSampleSum()) {
+			val["Sum"] = 0.0
+		} else {
+			val["Sum"] = s.GetSampleSum()
+		}
 		quantiles := s.GetQuantile()
 		qarr := make(map[string]float64, len(quantiles))
 		for _, quality := range quantiles {
-			qarr[t.quantileKey(quality.GetQuantile())] = quality.GetValue()
+			if math.IsNaN(quality.GetValue()) {
+				qarr[t.quantileKey(quality.GetQuantile())] = 0.0
+			} else {
+				qarr[t.quantileKey(quality.GetQuantile())] = quality.GetValue()
+			}
 		}
 		val["Quantile"] = qarr
 		res[idx] = val
