@@ -40,7 +40,8 @@ const (
 
 var (
 	errUnknownTimerType = errors.New("unknown metric timer type")
-	ms                  = float64(time.Millisecond) / float64(time.Second)
+	ms                  = float64(1)
+	// ms                  = float64(time.Millisecond) / float64(time.Second)
 )
 
 // DefaultHistogramBuckets is the default histogram buckets used when
@@ -202,11 +203,11 @@ func (m *cachedMetric) ReportTimer(interval time.Duration) {
 }
 
 func (m *cachedMetric) reportTimerHistogram(interval time.Duration) {
-	m.histogram.Observe(float64(interval) / float64(time.Second))
+	m.histogram.Observe(float64(interval) / float64(time.Millisecond))
 }
 
 func (m *cachedMetric) reportTimerSummary(interval time.Duration) {
-	m.summary.Observe(float64(interval) / float64(time.Second))
+	m.summary.Observe(float64(interval) / float64(time.Millisecond))
 }
 
 func (m *cachedMetric) ValueBucket(
@@ -218,7 +219,7 @@ func (m *cachedMetric) ValueBucket(
 func (m *cachedMetric) DurationBucket(
 	bucketLowerBound, bucketUpperBound time.Duration,
 ) tally.CachedHistogramBucket {
-	upperBound := float64(bucketUpperBound) / float64(time.Second)
+	upperBound := float64(bucketUpperBound) / float64(time.Millisecond)
 	return cachedHistogramBucket{m, upperBound}
 }
 
