@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iliubang/tally/v3"
+	"github.com/liubang/tally/v3"
 
 	prom "github.com/m3db/prometheus_client_golang/prometheus"
 	dto "github.com/m3db/prometheus_client_model/go"

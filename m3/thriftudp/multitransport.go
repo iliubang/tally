@@ -23,7 +23,7 @@ package thriftudp
 import (
 	"fmt"
 
-	"github.com/iliubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
+	"github.com/liubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
 )
 
 // TMultiUDPTransport does multiUDP as a thrift.TTransport

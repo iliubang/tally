@@ -3,13 +3,14 @@
 Fast, buffered, hierarchical stats collection in Go.
 
 ## Installation
-`go get -u github.com/iliubang/tally`
+
+`go get -u github.com/liubang/tally`
 
 ## Abstract
 
 Tally provides a common interface for emitting metrics, while letting you not worry about the velocity of metrics emission.
 
-By default it buffers counters, gauges and histograms at a specified interval but does not buffer timer values.  This is primarily so timer values can have all their values sampled if desired and if not they can be sampled as summaries or histograms independently by a reporter.
+By default it buffers counters, gauges and histograms at a specified interval but does not buffer timer values. This is primarily so timer values can have all their values sampled if desired and if not they can be sampled as summaries or histograms independently by a reporter.
 
 ## Structure
 
@@ -17,17 +18,18 @@ By default it buffers counters, gauges and histograms at a specified interval bu
 - Metrics: Counters, Gauges, Timers and Histograms.
 - Reporter: Implemented by you. Accepts aggregated values from the scope. Forwards the aggregated values to your metrics ingestion pipeline.
   - The reporters already available listed alphabetically are:
-	 - `github.com/iliubang/tally/m3`: Report m3 metrics, timers are not sampled and forwarded directly.
-	 - `github.com/iliubang/tally/multi`: Report to multiple reporters, you can multi-write metrics to other reporters simply.
-	 - `github.com/iliubang/tally/prometheus`: Report prometheus metrics, timers by default are made summaries with an option to make them histograms instead.
-	 - `github.com/iliubang/tally/statsd`: Report statsd metrics, no support for tags.
+  - `github.com/liubang/tally/m3`: Report m3 metrics, timers are not sampled and forwarded directly.
+  - `github.com/liubang/tally/multi`: Report to multiple reporters, you can multi-write metrics to other reporters simply.
+  - `github.com/liubang/tally/prometheus`: Report prometheus metrics, timers by default are made summaries with an option to make them histograms instead.
+  - `github.com/liubang/tally/statsd`: Report statsd metrics, no support for tags.
 
 ### Basics
 
- - Scopes created with tally provide race-safe registration and use of all metric types `Counter`, `Gauge`, `Timer`, `Histogram`.
- - `NewRootScope(...)` returns a `Scope` and `io.Closer`, the second return value is used to stop the scope's goroutine reporting values from the scope to it's reporter.  This is to reduce the footprint of `Scope` from the public API for those implementing it themselves to use in Go packages that take a tally `Scope`.
+- Scopes created with tally provide race-safe registration and use of all metric types `Counter`, `Gauge`, `Timer`, `Histogram`.
+- `NewRootScope(...)` returns a `Scope` and `io.Closer`, the second return value is used to stop the scope's goroutine reporting values from the scope to it's reporter. This is to reduce the footprint of `Scope` from the public API for those implementing it themselves to use in Go packages that take a tally `Scope`.
 
-### Acquire a Scope ###
+### Acquire a Scope
+
 ```go
 reporter = NewMyStatsReporter()  // Implement as you will
 tags := map[string]string{
@@ -42,7 +44,8 @@ scope := tally.NewRootScope(tally.ScopeOptions{
 }, reportEvery)
 ```
 
-### Get/Create a metric, use it ###
+### Get/Create a metric, use it
+
 ```go
 // Get a counter, increment a counter
 reqCounter := scope.Counter("requests")  // cache me
@@ -52,15 +55,16 @@ queueGauge := scope.Gauge("queue_length")  // cache me
 queueGauge.Update(42)
 ```
 
-### Report your metrics ###
+### Report your metrics
+
 Use the inbuilt statsd reporter:
 
 ```go
 import (
 	"io"
 	"github.com/cactus/go-statsd-client/statsd"
-	"github.com/iliubang/tally"
-	tallystatsd "github.com/iliubang/tally/statsd"
+	"github.com/liubang/tally"
+	tallystatsd "github.com/liubang/tally/statsd"
 	// ...
 )
 
@@ -202,11 +206,11 @@ BenchmarkTimerReport-8              	300000000	         5.69 ns/op
 
 Released under the [MIT License](LICENSE).
 
-[doc-img]: https://godoc.org/github.com/iliubang/tally?status.svg
-[doc]: https://godoc.org/github.com/iliubang/tally
+[doc-img]: https://godoc.org/github.com/liubang/tally?status.svg
+[doc]: https://godoc.org/github.com/liubang/tally
 [ci-img]: https://travis-ci.org/uber-go/tally.svg?branch=master
 [ci]: https://travis-ci.org/uber-go/tally
 [cov-img]: https://coveralls.io/repos/github/uber-go/tally/badge.svg?branch=master
 [cov]: https://coveralls.io/github/uber-go/tally?branch=master
-[glide.lock]: https://github.com/iliubang/tally/blob/master/glide.lock
-[v1]: https://github.com/iliubang/tally/milestones
+[glide.lock]: https://github.com/liubang/tally/blob/master/glide.lock
+[v1]: https://github.com/liubang/tally/milestones

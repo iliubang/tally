@@ -25,7 +25,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/iliubang/tally/v3"
+	"github.com/liubang/tally/v3"
 )
 
 type printStatsReporter struct{}

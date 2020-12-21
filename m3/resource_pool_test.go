@@ -23,8 +23,8 @@ package m3
 import (
 	"testing"
 
-	m3thrift "github.com/iliubang/tally/v3/m3/thrift"
-	"github.com/iliubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
+	m3thrift "github.com/liubang/tally/v3/m3/thrift"
+	"github.com/liubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
 
 	"github.com/stretchr/testify/require"
 )
