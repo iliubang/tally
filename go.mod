@@ -1,4 +1,4 @@
-module github.com/liubang/tally/v3
+module github.com/liubang/tally
 
 go 1.13
 

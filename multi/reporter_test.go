@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/liubang/tally/v3"
+	"github.com/liubang/tally"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

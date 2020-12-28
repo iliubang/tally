@@ -23,7 +23,7 @@ package m3
 import (
 	"testing"
 
-	"github.com/liubang/tally/v3/m3/thriftudp"
+	"github.com/liubang/tally/m3/thriftudp"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

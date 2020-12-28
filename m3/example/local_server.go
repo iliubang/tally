@@ -26,10 +26,10 @@ import (
 	"net"
 	"sync/atomic"
 
-	"github.com/liubang/tally/v3/m3"
-	customtransport "github.com/liubang/tally/v3/m3/customtransports"
-	m3thrift "github.com/liubang/tally/v3/m3/thrift"
-	"github.com/liubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
+	"github.com/liubang/tally/m3"
+	customtransport "github.com/liubang/tally/m3/customtransports"
+	m3thrift "github.com/liubang/tally/m3/thrift"
+	"github.com/liubang/tally/thirdparty/github.com/apache/thrift/lib/go/thrift"
 )
 
 type batchCallback func(batch *m3thrift.MetricBatch)

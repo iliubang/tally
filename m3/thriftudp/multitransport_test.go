@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/liubang/tally/v3/thirdparty/github.com/apache/thrift/lib/go/thrift"
+	"github.com/liubang/tally/thirdparty/github.com/apache/thrift/lib/go/thrift"
 
 	"github.com/stretchr/testify/assert"
 )

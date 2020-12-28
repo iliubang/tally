@@ -39,8 +39,8 @@ package main
 import (
 	"time"
 
-	"github.com/liubang/tally/v3"
-	"github.com/liubang/tally/v3/m3"
+	"github.com/liubang/tally"
+	"github.com/liubang/tally/m3"
 )
 
 func main() {

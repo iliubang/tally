@@ -21,7 +21,7 @@
 package prometheus
 
 import (
-	"github.com/liubang/tally/v3"
+	"github.com/liubang/tally"
 )
 
 var (
